@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">LaboratorioCalificado03</string>
+        <string name="teacher_name">Nombre del Profesor</string>
+        <string name="photo">Foto del Profesor</string>
+        <string name="click_to_call">Hacer una llamada</string>
+        <string name="click_to_send_email">Enviar un correo</string>
+
+
+</resources>
