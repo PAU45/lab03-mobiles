@@ -1,42 +1,51 @@
 package com.melendez.paulo.laboratoriocalificado03
 
+
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.melendez.paulo.laboratoriocalificado03.databinding.ActivityMainBinding
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import com.melendez.paulo.laboratoriocalificado03.ApiService;
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var viewModel: ProfesorViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Inicializar ViewBinding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Inicializar ViewModel
+        viewModel = ViewModelProvider(this).get(ProfesorViewModel::class.java)
+
+        setupRecyclerView()
+        observeViewModel()
+        viewModel.fetchTeachers()
+    }
+
+    private fun setupRecyclerView() {
         // Configurar RecyclerView
-        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        binding.rvTeachers.layoutManager = LinearLayoutManager(this)
+    }
 
-        // Hacer la petición a la API
-        RetrofitClient.apiService.getTeachers().enqueue(object : Callback<List<Teacher>> {
-            override fun onResponse(call: Call<List<Teacher>>, response: Response<List<Teacher>>) {
-                if (response.isSuccessful) {
-                    val teachers = response.body() ?: emptyList()
-                    val adapter = TeacherAdapter(this@MainActivity, teachers)
-                    binding.recyclerView.adapter = adapter
-                } else {
-                    Toast.makeText(this@MainActivity, "Error al obtener datos", Toast.LENGTH_SHORT).show()
-                }
-            }
+    private fun observeViewModel() {
+        // Observar cambios en los datos del ViewModel
+        viewModel.teacherList.observe(this) { teachers ->
+            val adapter = ProfesorAdapter(teachers, this)
+            binding.rvTeachers.adapter = adapter
+        }
 
-            override fun onFailure(call: Call<List<Teacher>>, t: Throwable) {
-                Toast.makeText(this@MainActivity, "Error de conexión", Toast.LENGTH_SHORT).show()
-            }
-        })
+        viewModel.isLoading.observe(this) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
+
+        viewModel.errorMessage.observe(this) { error ->
+            Toast.makeText(this, "Error: $error", Toast.LENGTH_LONG).show()
+        }
     }
 }
